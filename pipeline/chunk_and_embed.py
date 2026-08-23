@@ -15,16 +15,16 @@ citations possible later.
 """
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
 from load_documents import load_all_companies
 
-CHUNK_SIZE = 1000
-CHUNK_OVERLAP = 150
+CHUNK_SIZE = 1300
+CHUNK_OVERLAP = 200
 VECTOR_STORE_PATH = "vector_store"
-EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL_NAME = "BAAI/bge-base-en-v1.5"
 
 
 def build_documents(all_company_data):
@@ -67,27 +67,43 @@ def build_documents(all_company_data):
     return all_documents
 
 
-def embed_and_store(documents):
+def embed_and_store(documents, batch_size=200):
     """
     Embeds all chunks and stores them in a Chroma vector store on disk
     at VECTOR_STORE_PATH. This only needs to run once, unless the
     source PDFs or chunk settings change.
+
+    Processes documents in batches instead of one single call, so
+    real progress prints as it goes. A bigger, more accurate
+    embedding model (BAAI/bge-base-en-v1.5) genuinely takes a long
+    time on CPU-only hardware, and running silently for 30+ minutes
+    with no feedback was a real usability gap worth fixing, not
+    just a display nicety.
     """
     print(f"\nLoading embedding model: {EMBEDDING_MODEL_NAME}")
     print("(First run downloads the model, may take a minute.)")
 
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+    embeddings = HuggingFaceBgeEmbeddings(model_name=EMBEDDING_MODEL_NAME)
 
-    print(f"\nEmbedding {len(documents)} chunks and storing in Chroma...")
-    print("(This may take a few minutes for a large document set.)")
+    total = len(documents)
+    print(f"\nEmbedding {total} chunks and storing in Chroma...")
+    print("(This can genuinely take 30-60+ minutes on CPU-only hardware")
+    print("with this model size. Progress below updates as it runs.)\n")
 
-    vector_store = Chroma.from_documents(
-        documents=documents,
-        embedding=embeddings,
+    vector_store = Chroma(
         persist_directory=VECTOR_STORE_PATH,
+        embedding_function=embeddings,
     )
 
-    print(f"Done. Vector store saved to '{VECTOR_STORE_PATH}'.")
+    for start in range(0, total, batch_size):
+        batch = documents[start:start + batch_size]
+        vector_store.add_documents(batch)
+
+        done = min(start + batch_size, total)
+        pct = done / total * 100
+        print(f"  Embedded {done}/{total} chunks ({pct:.1f}%)")
+
+    print(f"\nDone. Vector store saved to '{VECTOR_STORE_PATH}'.")
     return vector_store
 
 

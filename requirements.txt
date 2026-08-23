@@ -1,9 +1,11 @@
 langchain
 langchain-community
+langchain-classic
 langchain-text-splitters
 langchain-chroma
 langchain-huggingface
 langchain-ollama
+rank_bm25
 chromadb
 sentence-transformers
 torchvision

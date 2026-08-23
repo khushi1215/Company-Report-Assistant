@@ -15,12 +15,13 @@ Layout:
 """
 
 import streamlit as st
+
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), "pipeline"))
 
 from load_documents import COMPANIES
-from retrieve_answer import load_vector_store, retrieve_chunks, build_context_string, PROMPT_TEMPLATE
+from retrieve_answer import load_vector_store, build_hybrid_retriever, retrieve_chunks_hybrid, build_context_string, PROMPT_TEMPLATE
 from langchain_ollama import ChatOllama
 
 
@@ -86,6 +87,18 @@ def get_vector_store():
 @st.cache_resource
 def get_llm():
     return ChatOllama(model="llama3.2")
+
+
+@st.cache_resource
+def get_hybrid_retriever(_vector_store, company):
+    """
+    Builds the hybrid (vector + keyword) retriever for one company.
+    Cached per company, since building the keyword search index
+    involves tokenizing every chunk for that company, real work
+    worth avoiding on every single question. The underscore prefix
+    on _vector_store tells Streamlit's cache not to try hashing it.
+    """
+    return build_hybrid_retriever(_vector_store, company)
 
 
 # ---------------------------------------------------------------
@@ -416,7 +429,8 @@ with ask_tab:
             with st.spinner(f"Reading {company}'s report and preparing an answer..."):
                 vector_store = get_vector_store()
                 llm = get_llm()
-                chunks = retrieve_chunks(vector_store, company, question)
+                hybrid_retriever = get_hybrid_retriever(vector_store, company)
+                chunks = retrieve_chunks_hybrid(vector_store, company, question, hybrid_retriever=hybrid_retriever)
 
                 if chunks:
                     context = build_context_string(chunks)
