@@ -24,16 +24,7 @@ EMBEDDING_MODEL_NAME = "BAAI/bge-base-en-v1.5"
 LLM_MODEL_NAME = "llama3.2"
 NUM_CHUNKS_TO_RETRIEVE = 3
 
-PROMPT_TEMPLATE = """You are answering questions using only the context provided below, taken from {company}'s annual report. Do not use any outside knowledge. If the answer is not clearly in the context, say you could not find that information in the report, do not guess.
-
-Write your answer in clear, complete sentences of your own. The context below may be messy, extracted from tables, stat boxes, or multi-column page layouts, so it may not read like normal prose. Do not copy fragments or phrases directly from the context as-is. Read it, understand what it says, and explain it plainly in your own words instead.
-
-Context from the report:
-{context}
-
-Question: {question}
-
-Answer:"""
+from prompt_template import PROMPT_TEMPLATE
 
 
 def load_vector_store():

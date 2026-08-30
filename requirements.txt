@@ -12,3 +12,7 @@ torchvision
 pdfplumber
 streamlit
 python-dotenv
+pinecone
+langchain-pinecone
+langchain-groq
+huggingface_hub

@@ -20,9 +20,25 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), "pipeline"))
 
+from dotenv import load_dotenv
+load_dotenv()
+
+APP_ENV = os.getenv("APP_ENV", "local")
+
 from load_documents import COMPANIES
-from retrieve_answer import load_vector_store, build_hybrid_retriever, retrieve_chunks_hybrid, build_context_string, PROMPT_TEMPLATE
-from langchain_ollama import ChatOllama
+from prompt_template import PROMPT_TEMPLATE
+
+if APP_ENV == "cloud":
+    from retrieve_answer_cloud import (
+        load_cloud_vector_store,
+        build_cloud_hybrid_retriever,
+        retrieve_chunks_cloud,
+        get_cloud_llm,
+        build_context_string,
+    )
+else:
+    from retrieve_answer import load_vector_store, build_hybrid_retriever, retrieve_chunks_hybrid, build_context_string
+    from langchain_ollama import ChatOllama
 
 
 # ---------------------------------------------------------------
@@ -81,11 +97,15 @@ SUGGESTED_QUESTIONS = {
 # ---------------------------------------------------------------
 @st.cache_resource
 def get_vector_store():
+    if APP_ENV == "cloud":
+        return load_cloud_vector_store()
     return load_vector_store()
 
 
 @st.cache_resource
 def get_llm():
+    if APP_ENV == "cloud":
+        return get_cloud_llm()
     return ChatOllama(model="llama3.2")
 
 
@@ -98,6 +118,8 @@ def get_hybrid_retriever(_vector_store, company):
     worth avoiding on every single question. The underscore prefix
     on _vector_store tells Streamlit's cache not to try hashing it.
     """
+    if APP_ENV == "cloud":
+        return build_cloud_hybrid_retriever(_vector_store, company)
     return build_hybrid_retriever(_vector_store, company)
 
 
@@ -430,7 +452,10 @@ with ask_tab:
                 vector_store = get_vector_store()
                 llm = get_llm()
                 hybrid_retriever = get_hybrid_retriever(vector_store, company)
-                chunks = retrieve_chunks_hybrid(vector_store, company, question, hybrid_retriever=hybrid_retriever)
+                if APP_ENV == "cloud":
+                    chunks = retrieve_chunks_cloud(vector_store, company, question, hybrid_retriever=hybrid_retriever)
+                else:
+                    chunks = retrieve_chunks_hybrid(vector_store, company, question, hybrid_retriever=hybrid_retriever)
 
                 if chunks:
                     context = build_context_string(chunks)

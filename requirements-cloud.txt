@@ -1,0 +1,10 @@
+langchain-community
+langchain-classic
+langchain-pinecone
+langchain-groq
+pinecone
+huggingface_hub
+rank_bm25
+pdfplumber
+streamlit
+python-dotenv

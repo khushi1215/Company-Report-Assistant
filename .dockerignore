@@ -1,0 +1,14 @@
+venv/
+vector_store/
+data/*.pdf
+eval/
+diagnostics/
+.env
+.git/
+__pycache__/
+*.pyc
+.gitignore
+.vscode/
+README.md
+KNOWLEDGE.md
+requirements.txt
