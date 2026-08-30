@@ -1,42 +1,36 @@
 # Company Report Assistant
 
+Answers natural-language questions about Indian companies using their real annual reports as the source, with every answer grounded in the actual document text and citable down to the page.
+
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.13-blue)
 ![Streamlit](https://img.shields.io/badge/streamlit-app-FF4B4B)
 ![LangChain](https://img.shields.io/badge/langchain-hybrid%20RAG-1C3C3C)
 ![Deployment](https://img.shields.io/badge/deployed-Render%20%2B%20Docker-46E3B7)
 
-Ask questions about a company's annual report in plain English, get answers pulled straight from the actual document, not a guess.
+---
+
+## What it does, and why it exists
+
+Reading a 150-page annual report to find one answer is slow. This app lets you pick a company, ask a direct question, and get an answer pulled from the actual report, with a way to check exactly where it came from. It uses RAG (Retrieval Augmented Generation), so answers come from the real document, not the model's general knowledge, and it won't guess when the answer isn't in the report.
 
 **🔗 Live demo:** [company-report-assistant.onrender.com](https://company-report-assistant.onrender.com)
+*(Runs on a free hosting tier that spins down after inactivity. First request after idle time can take 30-60 seconds to wake up, after that, answers generate in under 10 seconds.)*
 
-Runs on a fully free, hosted architecture: [Pinecone](https://pinecone.io) for vector storage, Hugging Face's Inference API for query embedding, and [Groq](https://groq.com) for the LLM, deployed via Docker on Render. Local development uses a different, fully offline stack (Chroma, a locally-loaded embedding model, and Llama 3.2 via Ollama). Both are real, working, and documented, see [KNOWLEDGE.md](./KNOWLEDGE.md) for the full reasoning behind why the project has two architectures and how each was verified.
-
-**Note:** this runs on Render's free tier, which spins down after periods of inactivity. The first request after a period of no traffic may take 30-60 seconds to wake back up, after that, answers generate in under 10 seconds.
-
----
-
-## Highlights
-
-- Answers are grounded in real annual report text, not general knowledge
-- Every answer streams in live and comes with a source you can check, down to the page
-- Covers 5 Indian companies across 5 different sectors: Banking, IT, FMCG, Energy, and Pharma
-- Simple, no technical setup needed to use it, light and dark mode included
-- Runs on a fully free architecture, hosted services for the live demo, local and offline for development, no paid API anywhere
-
----
-
-## Demo
-
-*(Screenshot or short GIF of the app in use goes here once built.)*
+**Highlights:**
+- 5 Indian companies across 5 different sectors: Banking, IT, FMCG, Energy, Pharma
+- Hybrid retrieval (vector + keyword search), not vector search alone
+- Answers stream in live and cite the exact source page
+- Light and dark mode, no technical setup needed to use the live demo
+- Two complete, working architectures: a free hosted deployment (Pinecone, Hugging Face, Groq) and a fully offline local setup (Chroma, Ollama), see [KNOWLEDGE.md](./KNOWLEDGE.md) for why both exist
 
 ---
 
 ## Installation
 
-Want to just try it? Use the live demo linked above, no setup needed.
+Want to just try it? Use the live demo linked above, nothing to install.
 
-To run it locally instead (local development uses a different, fully offline stack):
+To run it locally instead (a separate, fully offline stack):
 
 ```bash
 git clone https://github.com/khushi1215/company-report-assistant.git
@@ -46,7 +40,7 @@ venv\Scripts\Activate.ps1        # Windows PowerShell
 pip install -r requirements.txt
 ```
 
-This project runs on a free, local LLM (no API key or paid account needed). Install [Ollama](https://ollama.com), then pull the model:
+Local development uses a free, local LLM, no API key or paid account needed. Install [Ollama](https://ollama.com), then pull the model:
 
 ```bash
 ollama pull llama3.2
@@ -69,10 +63,10 @@ Then in the app:
 
 ## Tech Stack
 
-This project runs two different, fully working architectures, one for local development, one for the live deployment. Both use the same RAG pipeline and LangChain orchestration underneath, only where the heavy pieces run differs. The full reasoning behind this, including real measured memory numbers, is documented in [KNOWLEDGE.md](./KNOWLEDGE.md).
+Two complete architectures, same RAG pipeline and LangChain orchestration underneath, only where the heavy pieces run differs. Full reasoning, including real measured memory numbers, is in [KNOWLEDGE.md](./KNOWLEDGE.md).
 
 **Local development:**
-- **LangChain** — orchestrates the retrieval and answer pipeline
+- **LangChain** — orchestrates retrieval and the answer chain
 - **Chroma** — stores document chunks as searchable embeddings
 - **Hugging Face sentence-transformers** — turns text into embeddings, running locally
 - **Llama 3.2, via Ollama** — generates answers, running locally, free, no API key
@@ -116,4 +110,16 @@ company-report-assistant/
 
 ## Limitations
 
-Comparing companies against each other and uploading your own report are not supported. Retrieval accuracy is generally strong after two rounds of real, measured tuning (bigger embedding model, hybrid vector + keyword search, prompt and chunking improvements), but on broad questions asked against very large reports, the app can occasionally surface a different real section than expected, or blend multiple real facts inconsistently. All of this, including the real before/after evaluation numbers, is documented in [KNOWLEDGE.md](./KNOWLEDGE.md).
+Comparing companies against each other and uploading your own report are not supported. Retrieval accuracy is generally strong after multiple rounds of real, measured tuning, but on broad questions asked against very large reports, the app can occasionally surface a different real section than expected, or blend multiple real facts inconsistently. Full details, including real before/after evaluation numbers, are in [KNOWLEDGE.md](./KNOWLEDGE.md).
+
+---
+
+## Contributing
+
+This is a personal portfolio project, not actively seeking contributions. Feedback and questions are welcome via GitHub issues.
+
+---
+
+## License
+
+No license file yet. All rights reserved for now, this is a personal project built for learning and portfolio purposes.
